@@ -19,7 +19,12 @@ pip install -r requirements.txt
 4. Скопируйте `.env.example` в `.env` и заполните переменные:
    - BOT_TOKEN - токен бота от @BotFather
    - ADMIN_ID - ID администратора бота
-   - TARGET_GROUP_ID - ID целевой группы
+   - TARGET_GROUP_ID - ID целевой группы (отрицательное значение)
+
+5. Запустите бота:
+```bash
+python3 bot.py
+```
 
 ## Использование
 
