@@ -18,7 +18,7 @@ logging.basicConfig(
 # Константы
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
-TARGET_GROUP_ID = int(os.getenv('TARGET_GROUP_ID'))
+PROXY_CHAT_GROUP_ID = int(os.getenv('PROXY_CHAT_GROUP_ID'))
 TOPICS_FILE = 'user_topics.json'
 
 # Хранилище тем пользователей (user_id -> topic_id)
@@ -42,7 +42,7 @@ async def create_user_topic(user_id: int, user_name: str, user_last_name: str, u
     try:
         topic_name = f"{user_name} {user_last_name} (@{username}) ID{user_id}"
         result = await bot.create_forum_topic(
-            chat_id=TARGET_GROUP_ID,
+            chat_id=PROXY_CHAT_GROUP_ID,
             name=topic_name
         )
         user_topics[user_id] = result.message_thread_id
@@ -51,31 +51,6 @@ async def create_user_topic(user_id: int, user_name: str, user_last_name: str, u
     except Exception as e:
         logging.error(f"Ошибка при создании темы: {e}")
         return None
-
-async def new10topics(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Создает 10 тем в целевой группе"""
-    
-    # Проверяем, что команда от администратора
-    if update.effective_user.id != ADMIN_ID:
-        return
-    
-    # Проверяем, что команда из целевой группы
-    if update.effective_chat.id != TARGET_GROUP_ID:
-        return
-        
-    try:
-        # Создаем 10 тем
-        for i in range(1, 11):
-            topic_name = f"Тема {i}"
-            await context.bot.create_forum_topic(
-                chat_id=TARGET_GROUP_ID,
-                name=topic_name
-            )
-        
-        await update.message.reply_text("✅ Успешно создано 10 новых тем!")
-    except Exception as e:
-        logging.error(f"Ошибка при создании тем: {e}")
-        await update.message.reply_text("❌ Произошла ошибка при создании тем")
 
 async def get_ids(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Возвращает ID пользователя, группы и темы"""
@@ -114,7 +89,7 @@ async def handle_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Пересылаем сообщение в тему пользователя
     try:
         await context.bot.copy_message(
-            chat_id=TARGET_GROUP_ID,
+            chat_id=PROXY_CHAT_GROUP_ID,
             message_thread_id=user_topics[user.id],
             from_chat_id=update.effective_chat.id,
             message_id=update.message.message_id
@@ -160,7 +135,6 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
 
     # Добавляем обработчики команд
-    application.add_handler(CommandHandler("new10topics", new10topics))
     application.add_handler(CommandHandler("ids", get_ids))
     
     # Обработчик сообщений от пользователей в личку боту
