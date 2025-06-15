@@ -32,7 +32,6 @@ python3 bot.py
 2. Make the bot an administrator of the group
 3. Make sure the bot has permission to create topics
 4. Use commands:
-   - `/new10topics` - create 10 new topics
    - `/ids` - get current chat ID and your ID (useful for .env setup)
 
 ## Requirements
