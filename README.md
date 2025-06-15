@@ -1,42 +1,42 @@
 # Topic Manager Bot
 
-Телеграм бот для создания тем в группе.
+Telegram bot for creating topics in a group.
 
-## Установка
+## Installation
 
-1. Клонируйте репозиторий
-2. Создайте виртуальное окружение:
+1. Clone the repository
+2. Create a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # для Linux/macOS
-# или
-.\venv\Scripts\activate  # для Windows
+source venv/bin/activate  # for Linux/macOS
+# or
+.\venv\Scripts\activate  # for Windows
 ```
-3. Установите зависимости:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-4. Скопируйте `.env.example` в `.env` и заполните переменные:
-   - BOT_TOKEN - токен бота от @BotFather
-   - ADMIN_ID - ID администратора бота
-   - TARGET_GROUP_ID - ID целевой группы (отрицательное значение)
+4. Copy `.env.example` to `.env` and fill in the variables:
+   - BOT_TOKEN - bot token from @BotFather
+   - ADMIN_ID - bot administrator ID
+   - TARGET_GROUP_ID - target group ID (negative value)
 
-5. Запустите бота:
+5. Run the bot:
 ```bash
 python3 bot.py
 ```
 
-## Использование
+## Usage
 
-1. Добавьте бота в целевую группу
-2. Сделайте бота администратором группы
-3. Убедитесь что у бота есть разрешение на создание тем
-4. Используйте команды:
-   - `/new10topics` - создание 10 новых тем
-   - `/ids` - получить ID текущего чата и ваш ID (полезно для настройки .env)
+1. Add the bot to the target group
+2. Make the bot an administrator of the group
+3. Make sure the bot has permission to create topics
+4. Use commands:
+   - `/new10topics` - create 10 new topics
+   - `/ids` - get current chat ID and your ID (useful for .env setup)
 
-## Требования
-- Группа должна быть форумом (иметь включенные темы)
-- Бот должен быть администратором группы и иметь права на создание тем
-- Только администратор бота может создавать темы
-- Бот работает только в указанной целевой группе 
+## Requirements
+- Group must be a forum (have topics enabled)
+- Bot must be a group administrator and have rights to create topics
+- Only the bot administrator can create topics
+- Bot only works in the specified target group 

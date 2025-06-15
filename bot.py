@@ -6,38 +6,38 @@ from telegram import Update, Message
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from typing import Dict, Optional
 
-# Загрузка переменных окружения
+# Load environment variables
 load_dotenv()
 
-# Настройка логирования
+# Logging setup
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# Константы
+# Constants
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
 PROXY_CHAT_GROUP_ID = int(os.getenv('PROXY_CHAT_GROUP_ID'))
 TOPICS_FILE = 'user_topics.json'
 
-# Хранилище тем пользователей (user_id -> topic_id)
+# User topics storage (user_id -> topic_id)
 user_topics: Dict[int, int] = {}
 
 def load_topics() -> Dict[int, int]:
-    """Загрузка тем из файла"""
+    """Load topics from file"""
     if os.path.exists(TOPICS_FILE):
         with open(TOPICS_FILE, 'r') as f:
-            # Преобразуем ключи из строк в int
+            # Convert keys from strings to int
             return {int(k): v for k, v in json.load(f).items()}
     return {}
 
 def save_topics() -> None:
-    """Сохранение тем в файл"""
+    """Save topics to file"""
     with open(TOPICS_FILE, 'w') as f:
         json.dump(user_topics, f)
 
-# Функция создания темы для пользователя
+# Function to create topic for user
 async def create_user_topic(user_id: int, user_name: str, user_last_name: str, username: str, bot) -> Optional[int]:
     try:
         topic_name = f"{user_name} {user_last_name} (@{username}) ID{user_id}"
@@ -46,14 +46,14 @@ async def create_user_topic(user_id: int, user_name: str, user_last_name: str, u
             name=topic_name
         )
         user_topics[user_id] = result.message_thread_id
-        save_topics()  # Сохраняем изменения
+        save_topics()  # Save changes
         return result.message_thread_id
     except Exception as e:
-        logging.error(f"Ошибка при создании темы: {e}")
+        logging.error(f"Error creating topic: {e}")
         return None
 
 async def get_ids(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Возвращает ID пользователя, группы и темы"""
+    """Returns user, group and topic IDs"""
     
     if update.effective_user.id != ADMIN_ID:
         return
@@ -69,12 +69,12 @@ async def get_ids(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(response, parse_mode='Markdown')
 
 async def handle_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Обработка сообщений от пользователей"""
+    """Handle messages from users"""
     user = update.effective_user
     
-    # Проверяем, есть ли у пользователя тема
+    # Check if user has a topic
     if user.id not in user_topics:
-        # Создаем новую тему для пользователя
+        # Create new topic for user
         topic_id = await create_user_topic(
             user.id,
             user.first_name,
@@ -83,10 +83,10 @@ async def handle_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             context.bot
         )
         if not topic_id:
-            await update.message.reply_text("❌ Не удалось создать тему. Попробуйте позже.")
+            await update.message.reply_text("❌ Failed to create topic. Try again later.")
             return
             
-    # Пересылаем сообщение в тему пользователя
+    # Forward message to user's topic
     try:
         await context.bot.copy_message(
             chat_id=PROXY_CHAT_GROUP_ID,
@@ -95,14 +95,14 @@ async def handle_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             message_id=update.message.message_id
         )
     except Exception as e:
-        logging.error(f"Ошибка при пересылке сообщения: {e}")
+        logging.error(f"Error forwarding message: {e}")
 
 async def handle_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Обработка ответов администратора в темах"""
+    """Handle admin replies in topics"""
     if update.effective_user.id != ADMIN_ID or not update.effective_message.is_topic_message:
         return
         
-    # Ищем пользователя по ID темы
+    # Find user by topic ID
     topic_id = update.effective_message.message_thread_id
     user_id = None
     
@@ -112,7 +112,7 @@ async def handle_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE)
             break
             
     if not user_id:
-        await update.message.reply_text("❌ Не удалось найти пользователя для этой темы")
+        await update.message.reply_text("❌ Could not find user for this topic")
         return
         
     try:
@@ -122,34 +122,34 @@ async def handle_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE)
             message_id=update.message.message_id
         )
     except Exception as e:
-        logging.error(f"Ошибка при отправке ответа пользователю: {e}")
-        await update.message.reply_text("❌ Не удалось отправить сообщение пользователю")
+        logging.error(f"Error sending reply to user: {e}")
+        await update.message.reply_text("❌ Failed to send message to user")
 
 def main() -> None:
-    """Запуск бота"""
-    # Загружаем темы при старте
+    """Start the bot"""
+    # Load topics on startup
     global user_topics
     user_topics = load_topics()
     
-    # Создаем приложение
+    # Create application
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # Добавляем обработчики команд
+    # Add command handlers
     application.add_handler(CommandHandler("ids", get_ids))
     
-    # Обработчик сообщений от пользователей в личку боту
+    # Handler for user messages in private chat with bot
     application.add_handler(MessageHandler(
         filters.ChatType.PRIVATE & ~filters.COMMAND,
         handle_user_message
     ))
     
-    # Обработчик ответов администратора в темах
+    # Handler for admin replies in topics
     application.add_handler(MessageHandler(
         filters.ChatType.SUPERGROUP & filters.IS_TOPIC_MESSAGE & ~filters.COMMAND,
         handle_admin_reply
     ))
 
-    # Запускаем бота
+    # Run bot
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
