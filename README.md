@@ -1,6 +1,8 @@
 # Topic Manager Bot
 
-Telegram bot for creating topics in a group.
+Telegram bot for proxying messages between users and administrator through topics in a group.
+
+The bot works as an intermediary: users write to the bot in private messages, and for each user a separate topic is created in the target group. The administrator can reply in these topics, and their messages are automatically forwarded to the user through the bot. This way, the user sees the administrator's replies in the chat with the bot, while the administrator manages all conversations through topics in one group.
 
 ## Installation
 
